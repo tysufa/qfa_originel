@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetToken(t *testing.T) {
-	input := `!+/*-(){}`
+	input := `let foo = bar;`
 
 	l := New(input)
 
@@ -15,21 +15,18 @@ func TestGetToken(t *testing.T) {
 		expectedValue string
 		expectedType  token.TokenType
 	}{
-		{"!", token.BANG},
-		{"+", token.PLUS},
-		{"/", token.SLASH},
-		{"*", token.STAR},
-		{"-", token.MINUS},
-		{"(", token.LPAR},
-		{")", token.RPAR},
-		{"{", token.LBR},
-		{"}", token.RBR},
+		{"let", token.LET},
+		{"foo", token.IDENT},
+		{"=", token.EQ},
+		{"bar", token.IDENT},
+		{";", token.SEMICOLON},
+		{"", token.EOF},
 	}
 
 	for _, tt := range tests {
 		tok := l.getToken()
 		if tt.expectedType != tok.Type {
-			t.Fatalf("wrong token type, expected %s, got %s instead", tt.expectedType, tok.Type)
+			t.Fatalf("wrong token type, expected '%s', got '%s' instead", tt.expectedType, tok.Type)
 		}
 		if tt.expectedValue != tok.Value {
 			t.Fatalf("wrong token value, expected %s, got %s instead", tt.expectedValue, tok.Value)
