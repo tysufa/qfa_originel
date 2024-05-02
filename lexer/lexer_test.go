@@ -7,20 +7,25 @@ import (
 )
 
 func TestGetToken(t *testing.T) {
-	input := `let foo = bar;`
+	input := `let foo = bar; 
+	let toto;`
 
 	l := New(input)
 
 	tests := []struct {
 		expectedValue string
 		expectedType  token.TokenType
+		expectedLine  int
 	}{
-		{"let", token.LET},
-		{"foo", token.IDENT},
-		{"=", token.EQ},
-		{"bar", token.IDENT},
-		{";", token.SEMICOLON},
-		{"", token.EOF},
+		{"let", token.LET, 1},
+		{"foo", token.IDENT, 1},
+		{"=", token.EQ, 1},
+		{"bar", token.IDENT, 1},
+		{";", token.SEMICOLON, 1},
+		{"let", token.LET, 2},
+		{"toto", token.IDENT, 2},
+		{";", token.SEMICOLON, 2},
+		{"", token.EOF, 2},
 	}
 
 	for _, tt := range tests {
@@ -30,6 +35,9 @@ func TestGetToken(t *testing.T) {
 		}
 		if tt.expectedValue != tok.Value {
 			t.Fatalf("wrong token value, expected %s, got %s instead", tt.expectedValue, tok.Value)
+		}
+		if tt.expectedLine != tok.Line {
+			t.Fatalf("wrong token line, expected %v, got %v instead", tt.expectedLine, tok.Line)
 		}
 	}
 

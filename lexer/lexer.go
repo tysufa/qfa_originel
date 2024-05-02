@@ -23,46 +23,58 @@ func New(input string) *Lexer {
 func (l *Lexer) getToken() token.Token {
 	var tok token.Token
 
-	l.skipSpace()
+	l.skipSpaces()
 	switch l.curChar {
 	case 0:
 		tok.Type = token.EOF
 		tok.Value = ""
+		tok.Line = l.line
 	case ';':
 		tok.Type = token.SEMICOLON
 		tok.Value = string(l.curChar)
+		tok.Line = l.line
 	case '!':
 		tok.Type = token.BANG
 		tok.Value = string(l.curChar)
+		tok.Line = l.line
 	case '/':
 		tok.Type = token.SLASH
 		tok.Value = string(l.curChar)
+		tok.Line = l.line
 	case '*':
 		tok.Type = token.STAR
 		tok.Value = string(l.curChar)
+		tok.Line = l.line
 	case '-':
 		tok.Type = token.MINUS
 		tok.Value = string(l.curChar)
+		tok.Line = l.line
 	case '+':
 		tok.Type = token.PLUS
 		tok.Value = string(l.curChar)
+		tok.Line = l.line
 	case '(':
 		tok.Type = token.LPAR
 		tok.Value = string(l.curChar)
+		tok.Line = l.line
 	case ')':
 		tok.Type = token.RPAR
 		tok.Value = string(l.curChar)
+		tok.Line = l.line
 	case '{':
 		tok.Type = token.LBR
 		tok.Value = string(l.curChar)
+		tok.Line = l.line
 	case '}':
 		tok.Type = token.RBR
 		tok.Value = string(l.curChar)
+		tok.Line = l.line
 	case '=':
 		tok.Type = token.EQ
 		tok.Value = string(l.curChar)
+		tok.Line = l.line
 	default:
-		if l.isLetter() {
+		if isLetter(l.curChar) {
 			literal := l.getWord()
 			if literal == "let" {
 				tok.Type = token.LET
@@ -70,30 +82,34 @@ func (l *Lexer) getToken() token.Token {
 				tok.Type = token.IDENT
 			}
 			tok.Value = literal
+			tok.Line = l.line
 		}
 	}
 
 	l.nextChar()
-	print(string(l.curChar), "\n")
 	return tok
 }
 
 func (l *Lexer) getWord() string {
 	res := ""
-	for l.isLetter() {
+	for isLetter(l.peekChar) {
 		res += string(l.curChar)
 		l.nextChar()
 	}
+	res += string(l.curChar)
 
 	return res
 }
 
-func (l *Lexer) isLetter() bool {
-	return ('a' <= l.curChar && l.curChar >= 'z') || ('A' <= l.curChar && l.curChar >= 'Z')
+func isLetter(char byte) bool {
+	return ('a' <= char && char <= 'z') || ('A' <= char && char <= 'Z')
 }
 
-func (l *Lexer) skipSpace() {
-	for l.curChar == ' ' {
+func (l *Lexer) skipSpaces() {
+	for l.curChar == ' ' || l.curChar == '\n' || l.curChar == '\r' || l.curChar == '\t' {
+		if l.curChar == '\n' {
+			l.line++
+		}
 		l.nextChar()
 	}
 }
