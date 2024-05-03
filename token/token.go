@@ -14,9 +14,12 @@ const (
 	RBR       = "}"
 	EQ        = "="
 	IDENT     = "IDENT"
+	INT       = "INT"
+	FLOAT     = "FLOAT"
 	LET       = "LET"
 	SEMICOLON = ";"
 	EOF       = "EOF"
+	NL        = "NL" // New Line
 )
 
 type Token struct {

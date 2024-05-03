@@ -1,6 +1,8 @@
 package lexer
 
-import "github.com/tysufa/qfa/token"
+import (
+	"github.com/tysufa/qfa/token"
+)
 
 // "github.com/tysufa/qfa/token"
 
@@ -29,6 +31,11 @@ func (l *Lexer) getToken() token.Token {
 		tok.Type = token.EOF
 		tok.Value = ""
 		tok.Line = l.line
+	case '\n':
+		tok.Type = token.NL
+		tok.Value = "\n"
+		tok.Line = l.line
+		l.line++
 	case ';':
 		tok.Type = token.SEMICOLON
 		tok.Value = string(l.curChar)
@@ -83,6 +90,11 @@ func (l *Lexer) getToken() token.Token {
 			}
 			tok.Value = literal
 			tok.Line = l.line
+		} else if isNumber(l.curChar) {
+			nb := l.getInt()
+			tok.Type = token.INT
+			tok.Value = nb
+			tok.Line = l.line
 		}
 	}
 
@@ -90,9 +102,9 @@ func (l *Lexer) getToken() token.Token {
 	return tok
 }
 
-func (l *Lexer) getWord() string {
+func (l *Lexer) getInt() string {
 	res := ""
-	for isLetter(l.peekChar) {
+	for isNumber(l.peekChar) {
 		res += string(l.curChar)
 		l.nextChar()
 	}
@@ -101,15 +113,27 @@ func (l *Lexer) getWord() string {
 	return res
 }
 
+func (l *Lexer) getWord() string {
+	res := ""
+	for isLetter(l.peekChar) || isNumber(l.peekChar) {
+		res += string(l.curChar)
+		l.nextChar()
+	}
+	res += string(l.curChar)
+
+	return res
+}
+
+func isNumber(char byte) bool {
+	return ('0' <= char && char <= '9')
+}
+
 func isLetter(char byte) bool {
-	return ('a' <= char && char <= 'z') || ('A' <= char && char <= 'Z')
+	return ('a' <= char && char <= 'z') || ('A' <= char && char <= 'Z') || (char == '_')
 }
 
 func (l *Lexer) skipSpaces() {
-	for l.curChar == ' ' || l.curChar == '\n' || l.curChar == '\r' || l.curChar == '\t' {
-		if l.curChar == '\n' {
-			l.line++
-		}
+	for l.curChar == ' ' || l.curChar == '\r' || l.curChar == '\t' {
 		l.nextChar()
 	}
 }

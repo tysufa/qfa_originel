@@ -7,8 +7,9 @@ import (
 )
 
 func TestGetToken(t *testing.T) {
-	input := `let foo = bar; 
-	let toto;`
+	input := `let foo1 = bar; 
+	let toto;
+	42;`
 
 	l := New(input)
 
@@ -18,14 +19,18 @@ func TestGetToken(t *testing.T) {
 		expectedLine  int
 	}{
 		{"let", token.LET, 1},
-		{"foo", token.IDENT, 1},
+		{"foo1", token.IDENT, 1},
 		{"=", token.EQ, 1},
 		{"bar", token.IDENT, 1},
 		{";", token.SEMICOLON, 1},
+		{"\n", token.NL, 1},
 		{"let", token.LET, 2},
 		{"toto", token.IDENT, 2},
 		{";", token.SEMICOLON, 2},
-		{"", token.EOF, 2},
+		{"\n", token.NL, 2},
+		{"42", token.INT, 3},
+		{";", token.SEMICOLON, 3},
+		{"", token.EOF, 3},
 	}
 
 	for _, tt := range tests {
