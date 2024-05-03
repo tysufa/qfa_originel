@@ -83,8 +83,8 @@ func (l *Lexer) getToken() token.Token {
 	default:
 		if isLetter(l.curChar) {
 			literal := l.getWord()
-			if literal == "let" {
-				tok.Type = token.LET
+			if token.Reserved[literal] != "" {
+				tok.Type = token.Reserved[literal]
 			} else {
 				tok.Type = token.IDENT
 			}

@@ -9,7 +9,8 @@ import (
 func TestGetToken(t *testing.T) {
 	input := `let foo1 = bar; 
 	let toto;
-	42;`
+	42;
+	fn test2;`
 
 	l := New(input)
 
@@ -30,7 +31,11 @@ func TestGetToken(t *testing.T) {
 		{"\n", token.NL, 2},
 		{"42", token.INT, 3},
 		{";", token.SEMICOLON, 3},
-		{"", token.EOF, 3},
+		{"\n", token.NL, 3},
+		{"fn", token.FN, 4},
+		{"test2", token.IDENT, 4},
+		{";", token.SEMICOLON, 4},
+		{"", token.EOF, 4},
 	}
 
 	for _, tt := range tests {
