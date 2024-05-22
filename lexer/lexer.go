@@ -4,8 +4,6 @@ import (
 	"github.com/tysufa/qfa/token"
 )
 
-// "github.com/tysufa/qfa/token"
-
 type Lexer struct {
 	curChar  byte
 	peekChar byte
@@ -14,15 +12,16 @@ type Lexer struct {
 	line     int
 }
 
-func New(input string) *Lexer {
-	l := &Lexer{input: input, pos: -1, line: 1}
+func New(input string) Lexer {
+	l := Lexer{input: input, pos: -1, line: 1}
 	l.nextChar()
 	l.nextChar()
 
 	return l
 }
 
-func (l *Lexer) getToken() token.Token {
+func (l *Lexer) GetToken() token.Token {
+	// TODO: check for strings and floating numbers
 	var tok token.Token
 
 	l.skipSpaces()
