@@ -29,10 +29,12 @@ func (p *Parser) GetStatements() ast.Program {
 	res := ast.Program{}
 
 	for p.curToken.Type != token.EOF {
-		print(p.curToken.Type)
 		switch p.curToken.Type {
 		case token.LET:
-			res.Statements = append(res.Statements, p.parseLet())
+			stmt := p.parseLet()
+			if stmt != nil {
+				res.Statements = append(res.Statements, stmt)
+			}
 		}
 		p.nextToken()
 	}
@@ -42,21 +44,31 @@ func (p *Parser) GetStatements() ast.Program {
 func (p *Parser) parseLet() *ast.LetStatement {
 	let := &ast.LetStatement{Token: p.curToken}
 
-	p.expectPeek(token.IDENT)
+	if !p.expectPeek(token.IDENT) {
+		return nil
+	}
 	let.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Value}
-	p.expectPeek(token.EQ)
-	p.expectPeek(token.INT)
-	p.expectPeek(token.SEMICOLON)
+	if !p.expectPeek(token.EQ) {
+		return nil
+	}
+	if !p.expectPeek(token.INT) {
+		return nil
+	}
+	if !p.expectPeek(token.SEMICOLON) {
+		return nil
+	}
 
 	return let
 }
 
-func (p *Parser) expectPeek(expectToken token.TokenType) {
+func (p *Parser) expectPeek(expectToken token.TokenType) bool {
 	if p.peekToken.Type == expectToken {
 		p.nextToken()
+		return true
 	} else {
 		err := fmt.Sprintf("expected '%v', got '%v' instead at line %v", expectToken, p.peekToken.Type, p.curToken.Line)
 		p.errors = append(p.errors, err)
 		p.nextToken()
+		return false
 	}
 }

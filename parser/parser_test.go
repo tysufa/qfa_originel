@@ -25,8 +25,9 @@ func TestLetStatements(t *testing.T) {
 
 		if len(p.errors) > 0 {
 			for _, err := range p.errors {
-				t.Fatalf(err)
+				t.Errorf(err)
 			}
+			t.FailNow()
 		}
 
 		if len(stmts.Statements) != 1 {

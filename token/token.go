@@ -20,6 +20,7 @@ const (
 	ELSE      = "ELSE"
 	FN        = "FN"
 	WHILE     = "WHILE"
+	PRINT     = "PRINT"
 	RETURN    = "RETURN"
 	TRUE      = "TRUE"
 	FALSE     = "FALSE"
@@ -38,6 +39,7 @@ var Reserved = map[string]TokenType{
 	"false":  FALSE,
 	"let":    LET,
 	"while":  WHILE,
+	"print":  PRINT,
 }
 
 type Token struct {
