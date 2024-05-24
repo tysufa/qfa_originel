@@ -34,6 +34,15 @@ type ExpressionStatement struct {
 func (es *ExpressionStatement) TokenLiteral() string { return es.Token.Value }
 func (es *ExpressionStatement) StatementNode()       {}
 
+type PrefixExpression struct {
+	Token    token.Token
+	Operator string
+	Right    Expression
+}
+
+func (ps *PrefixExpression) TokenLiteral() string { return ps.Token.Value }
+func (ps *PrefixExpression) ExpressionNode()      {}
+
 type IntegerLiteral struct {
 	Token token.Token
 	Value int

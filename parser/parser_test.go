@@ -7,6 +7,63 @@ import (
 	"github.com/tysufa/qfa/lexer"
 )
 
+func TestPrefixExpressions(t *testing.T) {
+
+	tests := []struct {
+		input            string
+		expectedOperator string
+		expectedValue    int
+	}{
+		{"-5;", "-", 5},
+		{"!42", "!", 42},
+	}
+
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := New(l)
+		stmts := p.GetStatements()
+
+		if len(p.errors) > 0 {
+			for _, err := range p.errors {
+				t.Errorf(err)
+			}
+			t.FailNow()
+		}
+
+		if len(stmts.Statements) != 1 {
+			t.Fatalf("wrong number of stmts.Statements, expected 1, got %v instead", len(stmts.Statements))
+		}
+
+		exprStmt, ok := stmts.Statements[0].(*ast.ExpressionStatement)
+
+		if !ok {
+			t.Fatalf("expected ExpressionStatement got %T instead", stmts.Statements[0])
+		}
+
+		prefix, ok := exprStmt.Expression.(*ast.PrefixExpression)
+		if !ok {
+			t.Fatalf("expected PrefixExpression, got %T instead", exprStmt.Expression)
+		}
+		if prefix.Operator != test.expectedOperator {
+			t.Fatalf("Wrong operator, expected %s, got %s instead", test.expectedOperator, prefix.Operator)
+		}
+		testIntegerLiteral(t, prefix.Right, test.expectedValue)
+	}
+}
+
+func testIntegerLiteral(t *testing.T, integerExpression ast.Expression, expectedValue int) {
+	integ, ok := integerExpression.(*ast.IntegerLiteral)
+
+	if !ok {
+		t.Fatalf("expected IntegerLiteral got %T instead", integ)
+	}
+
+	if integ.Value != expectedValue {
+		t.Fatalf("wrong integer value, expected %v, got %v instead", expectedValue, integ.Value)
+	}
+
+}
+
 func TestIntegerLiteralExpressions(t *testing.T) {
 	input := "5;"
 
@@ -25,16 +82,15 @@ func TestIntegerLiteralExpressions(t *testing.T) {
 		t.Fatalf("expected ExpressionStatement got %T instead", stmt.Statements[0])
 	}
 
-	ident, ok := exprStmt.Expression.(*ast.IntegerLiteral)
+	integ, ok := exprStmt.Expression.(*ast.IntegerLiteral)
 
 	if !ok {
 		t.Fatalf("expected ExpressionStatement got %T instead", exprStmt.Expression)
 	}
 
-	if ident.Value != 5 {
-		t.Fatalf("expected ident of value foo, got %v instead", ident.Value)
+	if integ.Value != 5 {
+		t.Fatalf("expected ident of value foo, got %v instead", integ.Value)
 	}
-
 }
 
 func TestIdentExpressions(t *testing.T) {

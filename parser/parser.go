@@ -30,6 +30,8 @@ func New(l lexer.Lexer) *Parser {
 
 	p.prefixParseFns[token.IDENT] = p.parseIdent
 	p.prefixParseFns[token.INT] = p.parseIntegerLiteral
+	p.prefixParseFns[token.MINUS] = p.parsePrefixExpression
+	p.prefixParseFns[token.BANG] = p.parsePrefixExpression
 
 	return p
 }
@@ -57,6 +59,13 @@ func (p *Parser) GetStatements() ast.Program {
 		p.nextToken()
 	}
 	return res
+}
+
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	prefix := &ast.PrefixExpression{Token: p.curToken, Operator: p.curToken.Value}
+	p.nextToken()
+	prefix.Right = p.parseExpression()
+	return prefix
 }
 
 func (p *Parser) parseIdent() ast.Expression {
