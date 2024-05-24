@@ -34,6 +34,14 @@ type ExpressionStatement struct {
 func (es *ExpressionStatement) TokenLiteral() string { return es.Token.Value }
 func (es *ExpressionStatement) StatementNode()       {}
 
+type IntegerLiteral struct {
+	Token token.Token
+	Value int
+}
+
+func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Value }
+func (il *IntegerLiteral) ExpressionNode()      {}
+
 type LetStatement struct {
 	Token token.Token
 	Name  *Identifier
