@@ -40,9 +40,16 @@ func (l *Lexer) GetToken() token.Token {
 		tok.Value = string(l.curChar)
 		tok.Line = l.line
 	case '!':
-		tok.Type = token.BANG
-		tok.Value = string(l.curChar)
-		tok.Line = l.line
+		if l.peekChar == '=' {
+			tok.Type = token.NEQ
+			tok.Value = string("!=")
+			tok.Line = l.line
+			l.nextChar()
+		} else {
+			tok.Type = token.BANG
+			tok.Value = string(l.curChar)
+			tok.Line = l.line
+		}
 	case '/':
 		tok.Type = token.SLASH
 		tok.Value = string(l.curChar)
@@ -76,9 +83,16 @@ func (l *Lexer) GetToken() token.Token {
 		tok.Value = string(l.curChar)
 		tok.Line = l.line
 	case '=':
-		tok.Type = token.EQ
-		tok.Value = string(l.curChar)
-		tok.Line = l.line
+		if l.peekChar == '=' {
+			tok.Type = token.EQEQ
+			tok.Value = string("==")
+			tok.Line = l.line
+			l.nextChar()
+		} else {
+			tok.Type = token.EQ
+			tok.Value = string(l.curChar)
+			tok.Line = l.line
+		}
 	default:
 		if isLetter(l.curChar) {
 			literal := l.getWord()

@@ -13,6 +13,8 @@ const (
 	LBR       = "{"
 	RBR       = "}"
 	EQ        = "="
+	EQEQ      = "=="
+	NEQ       = "!="
 	IDENT     = "IDENT"
 	INT       = "INT"
 	FLOAT     = "FLOAT"
