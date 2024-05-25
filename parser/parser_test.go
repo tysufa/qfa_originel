@@ -7,6 +7,75 @@ import (
 	"github.com/tysufa/qfa/lexer"
 )
 
+func TestPriorityOperations(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedResult string
+	}{
+		{"1 * 2 + 3", "((1*2)+3)"},
+		{"1 / 2 - 3", "((1/2)-3)"},
+		{"1 * 2 + 3 / 4 - 5", "(((1*2)+(3/4))-5)"},
+		{"-1 * 2 + !3", "(((-1)*2)+(!3))"},
+		{"-a*b", "((-a)*b)"},
+		{
+			"!-a",
+			"(!(-a))",
+		},
+		{
+			"a + b + c",
+			"((a+b)+c)",
+		},
+		{
+			"a + b - c",
+			"((a+b)-c)",
+		},
+		{
+			"a * b * c",
+			"((a*b)*c)",
+		},
+		{
+			"a * b / c",
+			"((a*b)/c)",
+		},
+		{
+			"a + b / c",
+			"(a+(b/c))",
+		},
+		{
+			"a + b * c + d / e - f",
+			"(((a+(b*c))+(d/e))-f)",
+		},
+		{
+			"3 + 4 * 5 == 3 * 1 + 4 * 5",
+			"((3+(4*5))==((3*1)+(4*5)))",
+		},
+	}
+
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := New(l)
+		stmts := p.GetStatements()
+
+		if len(p.errors) > 0 {
+			for _, err := range p.errors {
+				t.Errorf(err)
+			}
+			t.FailNow()
+		}
+
+		exprStmt, ok := stmts.Statements[0].(*ast.ExpressionStatement)
+
+		if !ok {
+			t.Fatalf("expected ExpressionStatement got %T instead", stmts.Statements[0])
+		}
+
+		if exprStmt.String() != test.expectedResult {
+			t.Fatalf("expected %s, but got %s instead", test.expectedResult, exprStmt.String())
+		}
+
+	}
+}
+
 func TestInfixExpressions(t *testing.T) {
 	tests := []struct {
 		input            string
@@ -14,7 +83,7 @@ func TestInfixExpressions(t *testing.T) {
 		expectedOperator string
 		rightValue       int
 	}{
-		{"5 * 3 + 2 / 4 - 5;", 5, "+", 3},
+		{"5 + 3;", 5, "+", 3},
 		{"5 - 3;", 5, "-", 3},
 		{"5 * 3;", 5, "*", 3},
 		{"5 / 3;", 5, "/", 3},
@@ -37,7 +106,6 @@ func TestInfixExpressions(t *testing.T) {
 		}
 
 		exprStmt, ok := stmts.Statements[0].(*ast.ExpressionStatement)
-		t.Fatalf(exprStmt.String())
 		if !ok {
 			t.Fatalf("expected ExpressionStatement got %T instead", stmts.Statements[0])
 		}
