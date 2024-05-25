@@ -7,8 +7,54 @@ import (
 	"github.com/tysufa/qfa/lexer"
 )
 
-func TestPrefixExpressions(t *testing.T) {
+func TestInfixExpressions(t *testing.T) {
+	tests := []struct {
+		input            string
+		leftValue        int
+		expectedOperator string
+		rightValue       int
+	}{
+		{"5 * 3 + 2 / 4 - 5;", 5, "+", 3},
+		{"5 - 3;", 5, "-", 3},
+		{"5 * 3;", 5, "*", 3},
+		{"5 / 3;", 5, "/", 3},
+	}
 
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := New(l)
+		stmts := p.GetStatements()
+
+		if len(p.errors) > 0 {
+			for _, err := range p.errors {
+				t.Errorf(err)
+			}
+			t.FailNow()
+		}
+
+		if len(stmts.Statements) != 1 {
+			t.Fatalf("wrong number of stmts.Statements, expected 1, got %v instead", len(stmts.Statements))
+		}
+
+		exprStmt, ok := stmts.Statements[0].(*ast.ExpressionStatement)
+		t.Fatalf(exprStmt.String())
+		if !ok {
+			t.Fatalf("expected ExpressionStatement got %T instead", stmts.Statements[0])
+		}
+
+		infix, ok := exprStmt.Expression.(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("expected PrefixExpression, got %T instead", exprStmt.Expression)
+		}
+		if infix.Operator != test.expectedOperator {
+			t.Fatalf("Wrong operator, expected %s, got %s instead", test.expectedOperator, infix.Operator)
+		}
+		testIntegerLiteral(t, infix.Left, test.leftValue)
+		testIntegerLiteral(t, infix.Right, test.rightValue)
+	}
+}
+
+func TestPrefixExpressions(t *testing.T) {
 	tests := []struct {
 		input            string
 		expectedOperator string

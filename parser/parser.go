@@ -11,6 +11,15 @@ import (
 
 type (
 	prefixParseFn func() ast.Expression
+	infixParseFn  func(left ast.Expression) ast.Expression
+)
+
+const (
+	_ = iota
+	LOWEST
+	SUM
+	PRODUCT
+	PREFIX
 )
 
 type Parser struct {
@@ -19,6 +28,7 @@ type Parser struct {
 	peekToken      token.Token
 	errors         []string
 	prefixParseFns map[token.TokenType]prefixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 func New(l lexer.Lexer) *Parser {
@@ -32,6 +42,13 @@ func New(l lexer.Lexer) *Parser {
 	p.prefixParseFns[token.INT] = p.parseIntegerLiteral
 	p.prefixParseFns[token.MINUS] = p.parsePrefixExpression
 	p.prefixParseFns[token.BANG] = p.parsePrefixExpression
+
+	p.infixParseFns = make(map[token.TokenType]infixParseFn)
+
+	p.infixParseFns[token.PLUS] = p.parseInfixExpression
+	p.infixParseFns[token.MINUS] = p.parseInfixExpression
+	p.infixParseFns[token.STAR] = p.parseInfixExpression
+	p.infixParseFns[token.SLASH] = p.parseInfixExpression
 
 	return p
 }
@@ -61,10 +78,31 @@ func (p *Parser) GetStatements() ast.Program {
 	return res
 }
 
+var precedences = map[token.TokenType]int{
+	token.PLUS:  SUM,
+	token.MINUS: SUM,
+	token.STAR:  PRODUCT,
+	token.SLASH: PRODUCT,
+}
+
+func (p *Parser) getPeekPrecedence() int {
+	if p, ok := precedences[p.peekToken.Type]; ok {
+		return p
+	}
+	return LOWEST
+}
+
+func (p *Parser) getPrecedence() int {
+	if p, ok := precedences[p.curToken.Type]; ok {
+		return p
+	}
+	return LOWEST
+}
+
 func (p *Parser) parsePrefixExpression() ast.Expression {
 	prefix := &ast.PrefixExpression{Token: p.curToken, Operator: p.curToken.Value}
 	p.nextToken()
-	prefix.Right = p.parseExpression()
+	prefix.Right = p.parseExpression(PREFIX)
 	return prefix
 }
 
@@ -83,10 +121,18 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	}
 }
 
+func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	infix := &ast.InfixExpression{Token: p.curToken, Left: left, Operator: p.curToken.Value}
+	precedence := p.getPrecedence()
+	p.nextToken()
+	infix.Right = p.parseExpression(precedence)
+	return infix
+}
+
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	stmt := &ast.ExpressionStatement{Token: p.curToken}
 
-	stmt.Expression = p.parseExpression()
+	stmt.Expression = p.parseExpression(LOWEST)
 
 	if p.peekToken.Type == token.SEMICOLON {
 		p.nextToken()
@@ -95,7 +141,7 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	return stmt
 }
 
-func (p *Parser) parseExpression() ast.Expression {
+func (p *Parser) parseExpression(precedence int) ast.Expression {
 	prefix := p.prefixParseFns[p.curToken.Type]
 
 	if prefix == nil {
@@ -103,6 +149,18 @@ func (p *Parser) parseExpression() ast.Expression {
 	}
 
 	leftExp := prefix()
+
+	for p.peekToken.Type != token.SEMICOLON && precedence < p.getPeekPrecedence() {
+		infix := p.infixParseFns[p.peekToken.Type]
+
+		if infix == nil {
+			return leftExp
+		}
+
+		p.nextToken()
+
+		leftExp = infix(leftExp)
+	}
 
 	return leftExp
 }
