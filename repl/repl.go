@@ -8,13 +8,21 @@ import (
 	"github.com/tysufa/qfa/evaluator"
 	"github.com/tysufa/qfa/lexer"
 	"github.com/tysufa/qfa/parser"
+	// "github.com/tysufa/qfa/token"
 )
 
+const PROMPT = ">>> "
+
 func Run() {
-	reader := bufio.NewReader(os.Stdin)
-	for true {
-		fmt.Print(">>> ")
-		input, _ := reader.ReadString('\n')
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		fmt.Print(PROMPT)
+		scanned := scanner.Scan()
+		if !scanned {
+			return
+		}
+
+		input := scanner.Text()
 
 		l := lexer.New(input)
 		// tok := l.GetToken()
@@ -25,11 +33,9 @@ func Run() {
 		p := parser.New(l)
 		stmts := p.GetStatements()
 		evaluated := evaluator.EvaluateStatements(stmts)
-		if evaluated != nil {
-			for _, ev := range evaluated {
-				if ev != nil {
-					fmt.Printf("%v\n", ev.Inspect())
-				}
+		for _, ev := range evaluated {
+			if ev != nil {
+				fmt.Printf("%v\n", ev.Inspect())
 			}
 		}
 	}
