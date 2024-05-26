@@ -130,6 +130,8 @@ func (l *Lexer) GetToken() token.Token {
 			tok.Type = token.INT
 			tok.Value = nb
 			tok.Line = l.line
+		} else {
+			panic("character " + string(l.curChar) + " is not recognized by the lexer")
 		}
 	}
 
