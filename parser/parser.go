@@ -44,6 +44,7 @@ func New(l lexer.Lexer) *Parser {
 	p.prefixParseFns[token.INT] = p.parseIntegerLiteral
 	p.prefixParseFns[token.MINUS] = p.parsePrefixExpression
 	p.prefixParseFns[token.BANG] = p.parsePrefixExpression
+	p.prefixParseFns[token.LPAR] = p.parseGroupExpression
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 
@@ -169,6 +170,18 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	}
 
 	return leftExp
+}
+
+func (p *Parser) parseGroupExpression() ast.Expression {
+	p.nextToken()
+
+	expr := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAR) {
+		return nil
+	}
+
+	return expr
 }
 
 func (p *Parser) parseLet() *ast.LetStatement {
