@@ -41,6 +41,8 @@ func New(l lexer.Lexer) *Parser {
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 
 	p.prefixParseFns[token.IDENT] = p.parseIdent
+	p.prefixParseFns[token.TRUE] = p.parseBool
+	p.prefixParseFns[token.FALSE] = p.parseBool
 	p.prefixParseFns[token.INT] = p.parseIntegerLiteral
 	p.prefixParseFns[token.MINUS] = p.parsePrefixExpression
 	p.prefixParseFns[token.BANG] = p.parsePrefixExpression
@@ -54,6 +56,10 @@ func New(l lexer.Lexer) *Parser {
 	p.infixParseFns[token.SLASH] = p.parseInfixExpression
 	p.infixParseFns[token.EQEQ] = p.parseInfixExpression
 	p.infixParseFns[token.NEQ] = p.parseInfixExpression
+	p.infixParseFns[token.LT] = p.parseInfixExpression
+	p.infixParseFns[token.GT] = p.parseInfixExpression
+	p.infixParseFns[token.GEQT] = p.parseInfixExpression
+	p.infixParseFns[token.LEQT] = p.parseInfixExpression
 
 	return p
 }
@@ -88,6 +94,10 @@ var precedences = map[token.TokenType]int{
 	token.MINUS: SUM,
 	token.STAR:  PRODUCT,
 	token.SLASH: PRODUCT,
+	token.GT:    LESSGREATER,
+	token.LT:    LESSGREATER,
+	token.LEQT:  LESSGREATER,
+	token.GEQT:  LESSGREATER,
 	token.EQEQ:  EQUAL,
 	token.NEQ:   EQUAL,
 }
@@ -111,6 +121,15 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 	p.nextToken()
 	prefix.Right = p.parseExpression(PREFIX)
 	return prefix
+}
+
+func (p *Parser) parseBool() ast.Expression {
+	if p.curToken.Type == token.TRUE {
+		return &ast.Boolean{Token: p.curToken, Value: true}
+	} else {
+		return &ast.Boolean{Token: p.curToken, Value: false}
+	}
+
 }
 
 func (p *Parser) parseIdent() ast.Expression {

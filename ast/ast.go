@@ -83,6 +83,17 @@ func (ps *PrefixExpression) String() string {
 	return res
 }
 
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+func (b *Boolean) TokenLiteral() string { return b.Token.Value }
+func (b *Boolean) ExpressionNode()      {}
+func (b *Boolean) String() string {
+	return b.Token.Value
+}
+
 type IntegerLiteral struct {
 	Token token.Token
 	Value int

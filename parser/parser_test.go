@@ -65,10 +65,14 @@ func TestPriorityOperations(t *testing.T) {
 			"-(5 + 5)",
 			"(-(5+5))",
 		},
-		// {
-		// 	"!(true == true)",
-		// 	"(!(true==true))",
-		// },
+		{
+			"!(true == true)",
+			"(!(true==true))",
+		},
+		{
+			"1 + 2 < 4 == 5 - 4 >= 1",
+			"(((1+2)<4)==((5-4)>=1))",
+		},
 	}
 
 	for _, test := range tests {
