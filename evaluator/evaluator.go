@@ -21,7 +21,7 @@ func Evaluate(node ast.Node) object.Object {
 	case *ast.PrefixExpression:
 		return evaluatePrefix(node)
 	case *ast.InfixExpression:
-		return evaluteInfixExpression(node)
+		return evaluateInfixExpression(node)
 	}
 
 	return nil
@@ -64,43 +64,50 @@ func boolToBoolObject(b bool) *object.Boolean {
 	return FALSE
 }
 
-func evaluteInfixExpression(node *ast.InfixExpression) object.Object {
-	res := &object.Integer{}
-	rightInt, ok := Evaluate(node.Right).(*object.Integer)
-	if !ok {
-		return nil
-	}
-	right := rightInt.Value
-	leftInt, ok := Evaluate(node.Left).(*object.Integer)
-	if !ok {
-		return nil
-	}
-	left := leftInt.Value
-
-	switch node.Operator {
+func evaluateIntegerInfixExpression(operator string, left, right object.Object) object.Object {
+	leftVal := left.(*object.Integer).Value
+	rightVal := right.(*object.Integer).Value
+	switch operator {
 	case "+":
-		return &object.Integer{Value: right + left}
+		return &object.Integer{Value: leftVal + rightVal}
 	case "-":
-		return &object.Integer{Value: right - left}
+		return &object.Integer{Value: leftVal - rightVal}
 	case "*":
-		return &object.Integer{Value: right * left}
+		return &object.Integer{Value: leftVal * rightVal}
 	case "/":
-		return &object.Integer{Value: right / left}
+		return &object.Integer{Value: leftVal / rightVal}
 	case "==":
-		return boolToBoolObject(right == left)
+		return boolToBoolObject(leftVal == rightVal)
 	case "!=":
-		return boolToBoolObject(right != left)
+		return boolToBoolObject(leftVal != rightVal)
 	case ">":
-		return boolToBoolObject(right > left)
+		return boolToBoolObject(leftVal > rightVal)
 	case ">=":
-		return boolToBoolObject(right >= left)
+		return boolToBoolObject(leftVal >= rightVal)
 	case "<":
-		return boolToBoolObject(right < left)
+		return boolToBoolObject(leftVal < rightVal)
 	case "<=":
-		return boolToBoolObject(right <= left)
+		return boolToBoolObject(leftVal <= rightVal)
+
+	default:
+		return nil
+	}
+}
+
+func evaluateInfixExpression(node *ast.InfixExpression) object.Object {
+	left := Evaluate(node.Left)
+	right := Evaluate(node.Right)
+
+	switch {
+	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
+		return evaluateIntegerInfixExpression(node.Operator, left, right)
+	case node.Operator == "==":
+		return boolToBoolObject(left == right)
+	case node.Operator == "!=":
+		return boolToBoolObject(left != right)
 	}
 
-	return res
+	return nil
 }
 
 func EvaluateStatements(program ast.Program) []object.Object {
