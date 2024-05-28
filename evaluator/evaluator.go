@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	NULL  = &object.Null{}
 	TRUE  = &object.Boolean{Value: true}
 	FALSE = &object.Boolean{Value: false}
 )
@@ -40,7 +41,7 @@ func evaluatePrefix(node *ast.PrefixExpression) object.Object {
 
 func evaluateMinusOperatorExpression(right object.Object) object.Object {
 	if right.Type() != object.INTEGER_OBJ {
-		return nil
+		return NULL
 	}
 	value := right.(*object.Integer).Value
 	return &object.Integer{Value: -value}
@@ -53,7 +54,7 @@ func evaluateBangOperatorExpression(right object.Object) object.Object {
 	case FALSE:
 		return TRUE
 	default:
-		return nil
+		return NULL
 	}
 }
 
@@ -90,7 +91,7 @@ func evaluateIntegerInfixExpression(operator string, left, right object.Object) 
 		return boolToBoolObject(leftVal <= rightVal)
 
 	default:
-		return nil
+		return NULL
 	}
 }
 
@@ -99,6 +100,8 @@ func evaluateInfixExpression(node *ast.InfixExpression) object.Object {
 	right := Evaluate(node.Right)
 
 	switch {
+	case left.Type() != right.Type():
+		return &object.Null{}
 	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
 		return evaluateIntegerInfixExpression(node.Operator, left, right)
 	case node.Operator == "==":
@@ -107,7 +110,7 @@ func evaluateInfixExpression(node *ast.InfixExpression) object.Object {
 		return boolToBoolObject(left != right)
 	}
 
-	return nil
+	return NULL
 }
 
 func EvaluateStatements(program ast.Program) []object.Object {
