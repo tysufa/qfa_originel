@@ -189,17 +189,82 @@ func TestPrefixExpressions(t *testing.T) {
 	}
 }
 
+func testInfixExpression(t *testing.T, infixExpr ast.Expression, left interface{}, operator string, right interface{}) {
+	infix, ok := infixExpr.(*ast.InfixExpression)
+
+	if !ok {
+		t.Fatalf("expected *ast.InfixExpression got %T instead", infixExpr)
+	}
+
+	testLiteralExpression(t, infix.Left, left)
+
+	if infix.Operator != operator {
+		t.Fatalf("expected operator '%v', got '%v' instead", operator, infix.Operator)
+	}
+
+	testLiteralExpression(t, infix.Right, right)
+}
+
+func testBooleanLiteral(t *testing.T, booleanExpr ast.Expression, expectedBool bool) {
+	bool, ok := booleanExpr.(*ast.Boolean)
+
+	if !ok {
+		t.Fatalf("expected *ast.Boolean got %T instead", booleanExpr)
+	}
+	if bool.Value != expectedBool {
+		t.Fatalf("expected boolean of value '%v', got '%v' instead", expectedBool, bool.Value)
+	}
+}
+
+func testIdentLiteral(t *testing.T, identExpr ast.Expression, expectedIdent string) {
+	ident, ok := identExpr.(*ast.Identifier)
+
+	if !ok {
+		t.Fatalf("expected ExpressionStatement got %T instead", identExpr)
+	}
+	if ident.Value != expectedIdent {
+		t.Fatalf("expected ident of value %s, got %s instead", expectedIdent, ident.Value)
+	}
+}
+
 func testIntegerLiteral(t *testing.T, integerExpression ast.Expression, expectedValue int) {
 	integ, ok := integerExpression.(*ast.IntegerLiteral)
 
 	if !ok {
-		t.Fatalf("expected IntegerLiteral got %T instead", integ)
+		t.Fatalf("expected IntegerLiteral got %T instead", integerExpression)
 	}
 
 	if integ.Value != expectedValue {
 		t.Fatalf("wrong integer value, expected %v, got %v instead", expectedValue, integ.Value)
 	}
 
+}
+
+func TestBooleanLiteralExpressions(t *testing.T) {
+	input := "true;"
+
+	l := lexer.New(input)
+	p := New(l)
+
+	stmt := p.GetStatements()
+
+	testStatementsNumber(t, 1, stmt.Statements)
+
+	exprStmt, ok := stmt.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("expected ExpressionStatement got %T instead", stmt.Statements[0])
+	}
+
+	bool, ok := exprStmt.Expression.(*ast.Boolean)
+
+	if !ok {
+		t.Fatalf("expected *ast.Boolean got %T instead", exprStmt.Expression)
+	}
+
+	if bool.Value != true {
+		t.Fatalf("expected 'true', got '%v' instead", bool.Value)
+	}
 }
 
 func TestIntegerLiteralExpressions(t *testing.T) {
@@ -249,27 +314,19 @@ func TestIdentExpressions(t *testing.T) {
 		t.Fatalf("expected ExpressionStatement got %T instead", stmt.Statements[0])
 	}
 
-	ident, ok := exprStmt.Expression.(*ast.Identifier)
-
-	if !ok {
-		t.Fatalf("expected ExpressionStatement got %T instead", exprStmt.Expression)
-	}
-
-	if ident.Value != "foo" {
-		t.Fatalf("expected ident of value foo, got %s instead", ident.Value)
-	}
+	testIdentLiteral(t, exprStmt.Expression, "foo")
 
 }
 
-func TestLetStatements(t *testing.T) {
-
+func TestIfStatements(t *testing.T) {
 	tests := []struct {
-		input         string
-		expectedValue string
+		input        string
+		expected     interface{}
+		expectedElse interface{}
 	}{
-		{"let x = 3;", "x"},
-		{"let y = 3;", "y"},
-		// {"let foo_bar = bar;", "foo_bar"},
+		{"if (x < y){ true }", true, nil},
+		{"if (x < y){ x }", "x", nil},
+		{"if (x < y){ x } else { y }", "x", "y"},
 	}
 
 	for _, test := range tests {
@@ -277,22 +334,97 @@ func TestLetStatements(t *testing.T) {
 		p := New(l)
 		stmts := p.GetStatements()
 
-		if len(p.errors) > 0 {
-			for _, err := range p.errors {
-				t.Errorf(err)
-			}
-			t.FailNow()
+		testParserErrors(t, p)
+		testStatementsNumber(t, 1, stmts.Statements)
+
+		exprStmt, ok := stmts.Statements[0].(*ast.ExpressionStatement)
+
+		if !ok {
+			t.Fatalf("expected ExpressionStatement got %T instead", stmts.Statements[0])
 		}
 
-		if len(stmts.Statements) != 1 {
-			t.Fatalf("wrong number of stmts.Statements, expected 1, got %v instead", len(stmts.Statements))
+		ifStmt, ok := exprStmt.Expression.(*ast.IfExpression)
+		if !ok {
+			t.Fatalf("stmts.Statements[0] is not *ast.IfExpression, got '%T' instead", stmts.Statements[0])
 		}
+
+		testInfixExpression(t, ifStmt.Condition, "x", "<", "y")
+
+		for _, consequence := range ifStmt.Consequences.Statements {
+			csq, ok := consequence.(*ast.ExpressionStatement)
+			if !ok {
+				t.Fatalf("nop")
+			}
+			testLiteralExpression(t, csq.Expression, test.expected)
+		}
+
+		if ifStmt.ElseConsequences != nil {
+			for _, consequence := range ifStmt.ElseConsequences.Statements {
+				csq, ok := consequence.(*ast.ExpressionStatement)
+				if !ok {
+					t.Fatalf("nop")
+				}
+				testLiteralExpression(t, csq.Expression, test.expectedElse)
+			}
+		}
+	}
+}
+
+func TestLetStatements(t *testing.T) {
+
+	tests := []struct {
+		input         string
+		expectedName  string
+		expectedValue interface{}
+	}{
+		{"let x = 3;", "x", 3},
+		{"let z = false;", "z", false},
+		{"let foo_bar = bar;", "foo_bar", "bar"},
+	}
+
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := New(l)
+		stmts := p.GetStatements()
+
+		testParserErrors(t, p)
+
+		testStatementsNumber(t, 1, stmts.Statements)
 		letStmt, ok := stmts.Statements[0].(*ast.LetStatement)
 		if !ok {
 			t.Fatalf("stmts.Statements[0] is not *ast.LetStatement, got '%T' instead", stmts.Statements[0])
 		}
-		if letStmt.Name.Value != test.expectedValue {
-			t.Fatalf("letStmt.Name is not '%s', got '%s' instead", test.expectedValue, letStmt.Name.Value)
+		if letStmt.Name.Value != test.expectedName {
+			t.Fatalf("letStmt.Name is not '%s', got '%s' instead", test.expectedName, letStmt.Name.Value)
 		}
+
+		testLiteralExpression(t, letStmt.Value, test.expectedValue)
+
+	}
+}
+
+func testLiteralExpression(t *testing.T, expression ast.Expression, expected interface{}) {
+	switch v := expected.(type) {
+	case int:
+		testIntegerLiteral(t, expression, v)
+	case string:
+		testIdentLiteral(t, expression, v)
+	case bool:
+		testBooleanLiteral(t, expression, v)
+	}
+}
+
+func testParserErrors(t *testing.T, p *Parser) {
+	if len(p.errors) > 0 {
+		for _, err := range p.errors {
+			t.Errorf("Parser error : " + err)
+		}
+		t.FailNow()
+	}
+}
+
+func testStatementsNumber(t *testing.T, stmtNb int, stmts []ast.Statement) {
+	if len(stmts) != stmtNb {
+		t.Fatalf("wrong number of stmts.Statements, expected %d, got %v instead", stmtNb, len(stmts))
 	}
 }
