@@ -105,6 +105,44 @@ func (il *IntegerLiteral) String() string {
 	return il.Token.Value
 }
 
+type BlockStatement struct {
+	Token      token.Token // { token
+	Statements []Statement
+}
+
+func (sb *BlockStatement) TokenLiteral() string { return sb.Token.Value }
+func (sb *BlockStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString("")
+	for _, stmt := range sb.Statements {
+		out.WriteString(stmt.String())
+	}
+	return out.String()
+}
+
+type IfExpression struct {
+	Token            token.Token
+	Condition        Expression
+	Consequences     *BlockStatement
+	ElseConsequences *BlockStatement
+}
+
+func (is *IfExpression) TokenLiteral() string { return is.Token.Value }
+func (is *IfExpression) ExpressionNode()      {}
+func (is *IfExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("if")
+	out.WriteString(is.Condition.String())
+	out.WriteString("{")
+	out.WriteString(is.Consequences.String())
+	out.WriteString("}")
+	out.WriteString("else")
+	out.WriteString("{")
+	out.WriteString(is.ElseConsequences.String())
+	out.WriteString("}")
+	return out.String()
+}
+
 type LetStatement struct {
 	Token token.Token
 	Name  *Identifier
