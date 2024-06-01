@@ -100,16 +100,14 @@ func Run() {
 			// }
 			p := parser.New(l)
 			stmts := p.GetStatements()
-			evaluated := evaluator.EvaluateStatements(stmts)
+			evaluated := evaluator.EvaluateProgram(stmts.Statements).Block
 			for _, ev := range evaluated {
 				if ev != nil {
 					fmt.Printf("\n%v\n", ev.Inspect())
 				} else {
-					fmt.Printf("\n\n")
+					fmt.Printf("\nWasn't able to evaluate\n")
 				}
 			}
-
-			// fmt.Printf("\nEvaluate(%v)\n", input)
 
 			inputs = append(inputs, input) // on ajoute la commande à la liste de commandes exécutés
 

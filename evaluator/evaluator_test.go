@@ -8,6 +8,30 @@ import (
 	"github.com/tysufa/qfa/parser"
 )
 
+func TestIfExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int
+	}{
+		{"if (1+2 == 4){3*2} else {3+2*4}", 11},
+	}
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated[0], tt.expected)
+	}
+}
+
+func testIntegerObject(t *testing.T, obj object.Object, res int) {
+	result, ok := obj.(*object.Integer)
+	if !ok {
+		t.Errorf("object is not Integer. got=%T", obj)
+	}
+	if result.Value != res {
+		t.Errorf("object has wrong value. got=%d, want=%d",
+			result.Value, res)
+	}
+}
+
 func TestIntegerEvaluation(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -35,22 +59,11 @@ func TestIntegerEvaluation(t *testing.T) {
 	}
 }
 
-func testIntegerObject(t *testing.T, obj object.Object, res int) {
-	result, ok := obj.(*object.Integer)
-	if !ok {
-		t.Errorf("object is not Integer. got=%T (%+v)", obj, obj)
-	}
-	if result.Value != res {
-		t.Errorf("object has wrong value. got=%d, want=%d",
-			result.Value, res)
-	}
-}
-
 func testEval(input string) []object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
 
 	program := p.GetStatements()
 
-	return EvaluateStatements(program)
+	return EvaluateProgram(program.Statements).Block
 }

@@ -10,12 +10,20 @@ const (
 	INTEGER_OBJ = "INTEGER"
 	BOOLEAN_OBJ = "BOOLEAN"
 	NULL_OBJ    = "NULL"
+	BLOCK_OBJ   = "BLOCK"
 )
 
 type Object interface {
 	Type() ObjectType
 	Inspect() string
 }
+
+type BlockObject struct {
+	Block []Object
+}
+
+func (bo *BlockObject) Type() ObjectType { return BLOCK_OBJ }
+func (bo *BlockObject) Inspect() string  { return "blockObject" }
 
 type Null struct{}
 

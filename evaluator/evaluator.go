@@ -11,6 +11,33 @@ var (
 	FALSE = &object.Boolean{Value: false}
 )
 
+func EvaluateProgram(statements []ast.Statement) *object.BlockObject {
+	var res object.BlockObject
+	for _, stmt := range statements {
+		blockEval := Evaluate(stmt)
+		blockStmt, ok := blockEval.(*object.BlockObject)
+		if ok {
+			for _, stmt := range blockStmt.Block {
+				res.Block = append(res.Block, stmt)
+			}
+		} else {
+			res.Block = append(res.Block, Evaluate(stmt))
+		}
+
+	}
+
+	return &res
+}
+
+func EvaluateBlockStatement(block *ast.BlockStatement) object.Object {
+	var res object.BlockObject
+	for _, stmt := range block.Statements {
+		res.Block = append(res.Block, Evaluate(stmt))
+	}
+
+	return &res
+}
+
 func Evaluate(node ast.Node) object.Object {
 	switch node := node.(type) {
 	case *ast.ExpressionStatement:
@@ -21,11 +48,30 @@ func Evaluate(node ast.Node) object.Object {
 		return boolToBoolObject(node.Value)
 	case *ast.PrefixExpression:
 		return evaluatePrefix(node)
+	case *ast.IfExpression:
+		return evaluateIfExpression(node)
 	case *ast.InfixExpression:
 		return evaluateInfixExpression(node)
+	case *ast.BlockStatement:
+		return EvaluateBlockStatement(node)
 	}
 
 	return nil
+}
+
+func evaluateIfExpression(node *ast.IfExpression) object.Object {
+	resCondition := Evaluate(node.Condition)
+	cond := boolToBoolObject(resCondition.Inspect() == "true")
+
+	if cond.Value {
+		return EvaluateProgram(node.Consequences.Statements)
+	} else {
+		consequences := EvaluateProgram(node.ElseConsequences.Statements)
+		if consequences.Block == nil {
+			return nil
+		}
+		return consequences
+	}
 }
 
 func evaluatePrefix(node *ast.PrefixExpression) object.Object {
@@ -111,13 +157,4 @@ func evaluateInfixExpression(node *ast.InfixExpression) object.Object {
 	}
 
 	return NULL
-}
-
-func EvaluateStatements(program ast.Program) []object.Object {
-	var res []object.Object
-	for _, stmt := range program.Statements {
-		res = append(res, Evaluate(stmt))
-	}
-
-	return res
 }
