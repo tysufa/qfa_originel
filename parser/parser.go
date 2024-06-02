@@ -75,6 +75,8 @@ func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	case token.LET:
 		stmt = p.parseLet()
+	case token.RETURN:
+		stmt = p.parseReturn()
 	default:
 		stmt = p.parseExpressionStatement()
 	}
@@ -209,6 +211,20 @@ func (p *Parser) parseGroupExpression() ast.Expression {
 	}
 
 	return expr
+}
+
+func (p *Parser) parseReturn() *ast.ReturnStatement {
+	ret := &ast.ReturnStatement{Token: p.curToken}
+
+	p.nextToken()
+
+	ret.Value = p.parseExpression(LOWEST)
+
+	if p.expectPeek(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return ret
 }
 
 func (p *Parser) parseLet() *ast.LetStatement {

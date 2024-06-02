@@ -220,7 +220,7 @@ func testIdentLiteral(t *testing.T, identExpr ast.Expression, expectedIdent stri
 	ident, ok := identExpr.(*ast.Identifier)
 
 	if !ok {
-		t.Fatalf("expected ExpressionStatement got %T instead", identExpr)
+		t.Fatalf("expected *ast.identifier got %T instead", identExpr)
 	}
 	if ident.Value != expectedIdent {
 		t.Fatalf("expected ident of value %s, got %s instead", expectedIdent, ident.Value)
@@ -367,6 +367,35 @@ func TestIfStatements(t *testing.T) {
 				testLiteralExpression(t, csq.Expression, test.expectedElse)
 			}
 		}
+	}
+}
+
+func TestReturnStatements(t *testing.T) {
+
+	tests := []struct {
+		input         string
+		expectedValue interface{}
+	}{
+		{"return x;", "x"},
+		{"return 1;", 1},
+		{"return true;", true},
+	}
+
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := New(l)
+		stmts := p.GetStatements()
+
+		testParserErrors(t, p)
+
+		testStatementsNumber(t, 1, stmts.Statements)
+		letStmt, ok := stmts.Statements[0].(*ast.ReturnStatement)
+		if !ok {
+			t.Fatalf("stmts.Statements[0] is not *ast.ReturnStatement, got '%T' instead", stmts.Statements[0])
+		}
+
+		testLiteralExpression(t, letStmt.Value, test.expectedValue)
+
 	}
 }
 

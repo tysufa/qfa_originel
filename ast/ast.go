@@ -36,6 +36,15 @@ type Expression interface {
 	ExpressionNode()
 }
 
+type ReturnStatement struct {
+	Token token.Token
+	Value Expression
+}
+
+func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Value }
+func (rs *ReturnStatement) StatementNode()       {}
+func (rs *ReturnStatement) String() string       { return "return " + rs.Value.String() }
+
 type Identifier struct {
 	Token token.Token
 	Value string
