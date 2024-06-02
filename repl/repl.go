@@ -106,12 +106,12 @@ func Run() {
 					fmt.Printf("\n%v\n", err)
 				}
 			} else {
-				evaluated := evaluator.EvaluateProgram(stmts.Statements).Block
+				evaluated := evaluator.EvaluateProgram(stmts.Statements)
 				for _, ev := range evaluated {
 					if ev != nil {
-						fmt.Printf("\n%v\n", ev.Inspect())
+						fmt.Printf("\n%v", ev.Inspect())
 					} else {
-						fmt.Printf("\nWasn't able to evaluate\n")
+						fmt.Printf("\n")
 					}
 				}
 			}
