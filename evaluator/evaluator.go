@@ -11,28 +11,53 @@ var (
 	FALSE = &object.Boolean{Value: false}
 )
 
-func EvaluateProgram(statements []ast.Statement) *object.BlockObject {
-	var res object.BlockObject
+func EvaluateProgram(statements []ast.Statement) []object.Object {
+	var program []object.Object
+
 	for _, stmt := range statements {
-		blockEval := Evaluate(stmt)
-		blockStmt, ok := blockEval.(*object.BlockObject)
-		if ok {
-			for _, stmt := range blockStmt.Block {
-				res.Block = append(res.Block, stmt)
+		stmtVal := Evaluate(stmt)
+
+		switch stmtVal := stmtVal.(type) {
+		case *object.Return:
+			program = append(program, Evaluate(stmt))
+			return program
+		case *object.BlockObject:
+			if stmtVal.Return {
+				program = append(program, stmtVal)
+				return program
+			} else {
+				program = append(program, stmtVal)
 			}
-		} else {
-			res.Block = append(res.Block, Evaluate(stmt))
+		default:
+			program = append(program, Evaluate(stmt))
 		}
 
 	}
 
-	return &res
+	return program
 }
 
 func EvaluateBlockStatement(block *ast.BlockStatement) object.Object {
-	var res object.BlockObject
+	res := object.BlockObject{Return: false}
 	for _, stmt := range block.Statements {
-		res.Block = append(res.Block, Evaluate(stmt))
+		stmtVal := Evaluate(stmt)
+
+		switch stmtVal := stmtVal.(type) {
+		case *object.Return:
+			res.Block = append(res.Block, Evaluate(stmt))
+			res.Return = true
+			return &res
+		case *object.BlockObject:
+			if stmtVal.Return {
+				res.Block = append(res.Block, stmtVal)
+				return &res
+			} else {
+				res.Block = append(res.Block, stmtVal)
+			}
+		default:
+			res.Block = append(res.Block, Evaluate(stmt))
+		}
+
 	}
 
 	return &res
@@ -54,6 +79,8 @@ func Evaluate(node ast.Node) object.Object {
 		return evaluateInfixExpression(node)
 	case *ast.BlockStatement:
 		return EvaluateBlockStatement(node)
+	case *ast.ReturnStatement:
+		return &object.Return{Value: Evaluate(node.Value)}
 	}
 
 	return nil
@@ -61,13 +88,13 @@ func Evaluate(node ast.Node) object.Object {
 
 func evaluateIfExpression(node *ast.IfExpression) object.Object {
 	resCondition := Evaluate(node.Condition)
-	cond := boolToBoolObject(resCondition.Inspect() == "true")
+	cond := boolToBoolObject(resCondition == TRUE)
 
 	if cond.Value {
-		return EvaluateProgram(node.Consequences.Statements)
+		return EvaluateBlockStatement(node.Consequences)
 	} else {
-		consequences := EvaluateProgram(node.ElseConsequences.Statements)
-		if consequences.Block == nil {
+		consequences := EvaluateBlockStatement(node.ElseConsequences)
+		if node.ElseConsequences == nil {
 			return nil
 		}
 		return consequences

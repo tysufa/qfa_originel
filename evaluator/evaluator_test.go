@@ -65,5 +65,5 @@ func testEval(input string) []object.Object {
 
 	program := p.GetStatements()
 
-	return EvaluateProgram(program.Statements).Block
+	return EvaluateProgram(program.Statements)
 }
