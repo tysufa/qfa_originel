@@ -131,7 +131,9 @@ func (l *Lexer) GetToken() token.Token {
 			tok.Value = nb
 			tok.Line = l.line
 		} else {
-			panic("character " + string(l.curChar) + " is not recognized by the lexer")
+			tok.Type = token.ILLEGAL
+			tok.Value = string(l.curChar)
+			tok.Line = l.line
 		}
 	}
 

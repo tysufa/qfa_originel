@@ -34,6 +34,7 @@ const (
 	SEMICOLON = ";"
 	EOF       = "EOF"
 	NL        = "NL" // New Line
+	ILLEGAL   = "ILLEGAL"
 )
 
 var Reserved = map[string]TokenType{
