@@ -292,6 +292,10 @@ func (p *Parser) parseIfExpression() ast.Expression {
 		is.ElseConsequences = &ast.BlockStatement{}
 	}
 
+	if p.peekToken.Type == token.SEMICOLON {
+		p.nextToken()
+	}
+
 	return is
 }
 
