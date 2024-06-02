@@ -100,12 +100,19 @@ func Run() {
 			// }
 			p := parser.New(l)
 			stmts := p.GetStatements()
-			evaluated := evaluator.EvaluateProgram(stmts.Statements).Block
-			for _, ev := range evaluated {
-				if ev != nil {
-					fmt.Printf("\n%v\n", ev.Inspect())
-				} else {
-					fmt.Printf("\nWasn't able to evaluate\n")
+
+			if len(p.Errors) > 0 {
+				for _, err := range p.Errors {
+					fmt.Printf("\n%v\n", err)
+				}
+			} else {
+				evaluated := evaluator.EvaluateProgram(stmts.Statements).Block
+				for _, ev := range evaluated {
+					if ev != nil {
+						fmt.Printf("\n%v\n", ev.Inspect())
+					} else {
+						fmt.Printf("\nWasn't able to evaluate\n")
+					}
 				}
 			}
 

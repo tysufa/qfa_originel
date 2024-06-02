@@ -80,8 +80,8 @@ func TestPriorityOperations(t *testing.T) {
 		p := New(l)
 		stmts := p.GetStatements()
 
-		if len(p.errors) > 0 {
-			for _, err := range p.errors {
+		if len(p.Errors) > 0 {
+			for _, err := range p.Errors {
 				t.Errorf(err)
 			}
 			t.FailNow()
@@ -118,8 +118,8 @@ func TestInfixExpressions(t *testing.T) {
 		p := New(l)
 		stmts := p.GetStatements()
 
-		if len(p.errors) > 0 {
-			for _, err := range p.errors {
+		if len(p.Errors) > 0 {
+			for _, err := range p.Errors {
 				t.Errorf(err)
 			}
 			t.FailNow()
@@ -161,8 +161,8 @@ func TestPrefixExpressions(t *testing.T) {
 		p := New(l)
 		stmts := p.GetStatements()
 
-		if len(p.errors) > 0 {
-			for _, err := range p.errors {
+		if len(p.Errors) > 0 {
+			for _, err := range p.Errors {
 				t.Errorf(err)
 			}
 			t.FailNow()
@@ -444,8 +444,8 @@ func testLiteralExpression(t *testing.T, expression ast.Expression, expected int
 }
 
 func testParserErrors(t *testing.T, p *Parser) {
-	if len(p.errors) > 0 {
-		for _, err := range p.errors {
+	if len(p.Errors) > 0 {
+		for _, err := range p.Errors {
 			t.Errorf("Parser error : " + err)
 		}
 		t.FailNow()

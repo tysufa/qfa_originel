@@ -28,7 +28,7 @@ type Parser struct {
 	lex            lexer.Lexer
 	curToken       token.Token
 	peekToken      token.Token
-	errors         []string
+	Errors         []string
 	prefixParseFns map[token.TokenType]prefixParseFn
 	infixParseFns  map[token.TokenType]infixParseFn
 }
@@ -149,7 +149,7 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	val, err := strconv.Atoi(p.curToken.Value)
 	if err != nil {
 		err := fmt.Sprintf("could not convert %s to an integer", p.curToken.Value)
-		p.errors = append(p.errors, err)
+		p.Errors = append(p.Errors, err)
 		return nil
 	} else {
 		return &ast.IntegerLiteral{Token: p.curToken, Value: val}
@@ -180,7 +180,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	prefix := p.prefixParseFns[p.curToken.Type]
 
 	if prefix == nil {
-		p.errors = append(p.errors, fmt.Sprintf("no parse function found for prefix %v", p.curToken.Type))
+		p.Errors = append(p.Errors, fmt.Sprintf("no parse function found for prefix %v", p.curToken.Type))
 		return nil
 	}
 
@@ -220,9 +220,7 @@ func (p *Parser) parseReturn() *ast.ReturnStatement {
 
 	ret.Value = p.parseExpression(LOWEST)
 
-	if p.expectPeek(token.SEMICOLON) {
-		p.nextToken()
-	}
+	p.expectPeek(token.SEMICOLON)
 
 	return ret
 }
@@ -305,7 +303,7 @@ func (p *Parser) expectPeek(expectToken token.TokenType) bool {
 		return true
 	} else {
 		err := fmt.Sprintf("expected '%v', got '%v' instead at line %v", expectToken, p.peekToken.Type, p.curToken.Line)
-		p.errors = append(p.errors, err)
+		p.Errors = append(p.Errors, err)
 		p.nextToken()
 		return false
 	}
