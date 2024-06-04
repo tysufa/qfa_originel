@@ -8,6 +8,7 @@ import (
 	"atomicgo.dev/keyboard/keys"
 	"github.com/tysufa/qfa/evaluator"
 	"github.com/tysufa/qfa/lexer"
+	"github.com/tysufa/qfa/object"
 	"github.com/tysufa/qfa/parser"
 )
 
@@ -23,6 +24,8 @@ func printInput(input string, pos int) {
 }
 
 func Run() {
+	env := object.NewEnvironment()
+
 	var input string = ""
 	var inputs []string
 	curInput := 0 // input actuel dans la liste des inputs déjà évalués
@@ -106,7 +109,7 @@ func Run() {
 					fmt.Printf("\n%v\n", err)
 				}
 			} else {
-				evaluated := evaluator.EvaluateProgram(stmts.Statements)
+				evaluated := evaluator.EvaluateProgram(stmts.Statements, env)
 				for _, ev := range evaluated {
 					if ev != nil {
 						fmt.Printf("\n%v", ev.Inspect())
