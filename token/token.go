@@ -32,6 +32,7 @@ const (
 	FALSE     = "FALSE"
 	LET       = "LET"
 	SEMICOLON = ";"
+	COMMA     = ","
 	EOF       = "EOF"
 	NL        = "NL" // New Line
 	ILLEGAL   = "ILLEGAL"

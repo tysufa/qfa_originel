@@ -22,6 +22,7 @@ const (
 	SUM
 	PRODUCT
 	PREFIX
+	CALL
 )
 
 type Parser struct {
@@ -48,6 +49,7 @@ func New(l lexer.Lexer) *Parser {
 	p.prefixParseFns[token.BANG] = p.parsePrefixExpression
 	p.prefixParseFns[token.LPAR] = p.parseGroupExpression
 	p.prefixParseFns[token.IF] = p.parseIfExpression
+	p.prefixParseFns[token.FN] = p.parseFunctionLiteral
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 
@@ -61,8 +63,78 @@ func New(l lexer.Lexer) *Parser {
 	p.infixParseFns[token.GT] = p.parseInfixExpression
 	p.infixParseFns[token.GEQT] = p.parseInfixExpression
 	p.infixParseFns[token.LEQT] = p.parseInfixExpression
+	p.infixParseFns[token.LPAR] = p.parseCallExpression
 
 	return p
+}
+
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	exp := &ast.CallExpression{Token: p.curToken, Function: function}
+	exp.Arguments = p.parseCallArguments()
+	return exp
+}
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+	if p.peekToken.Type == token.RPAR {
+		p.nextToken()
+		return args
+	}
+	p.nextToken()
+	args = append(args, p.parseExpression(LOWEST))
+	for p.peekToken.Type == token.COMMA {
+		p.nextToken()
+		p.nextToken()
+		args = append(args, p.parseExpression(LOWEST))
+	}
+	if !p.expectPeek(token.RPAR) {
+		return nil
+	}
+	return args
+}
+
+func (p *Parser) parseFunctionLiteral() ast.Expression {
+	fn := &ast.FunctionLiteral{Token: p.curToken}
+
+	if !p.expectPeek(token.LPAR) {
+		return nil
+	}
+	fn.Parameters = p.parseFunctionParameters()
+
+	if !p.expectPeek(token.LBR) {
+		return nil
+	}
+
+	fn.Body = *p.parseBlockStatement()
+
+	return fn
+}
+
+func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+	idents := []*ast.Identifier{}
+
+	if p.peekToken.Type == token.RPAR {
+		p.nextToken()
+		return idents
+	}
+
+	p.nextToken()
+
+	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Value}
+	idents = append(idents, ident)
+
+	for p.peekToken.Type == token.COMMA {
+		p.nextToken()
+		p.nextToken()
+		ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Value}
+		idents = append(idents, ident)
+	}
+
+	if !p.expectPeek(token.RPAR) {
+		return nil
+	}
+
+	return idents
 }
 
 func (p *Parser) nextToken() {
@@ -109,6 +181,7 @@ var precedences = map[token.TokenType]int{
 	token.GEQT:  LESSGREATER,
 	token.EQEQ:  EQUAL,
 	token.NEQ:   EQUAL,
+	token.LPAR:  CALL,
 }
 
 func (p *Parser) getPeekPrecedence() int {

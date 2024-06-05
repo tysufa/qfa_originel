@@ -39,6 +39,10 @@ func (l *Lexer) GetToken() token.Token {
 		tok.Type = token.SEMICOLON
 		tok.Value = string(l.curChar)
 		tok.Line = l.line
+	case ',':
+		tok.Type = token.COMMA
+		tok.Value = string(l.curChar)
+		tok.Line = l.line
 	case '<':
 		if l.peekChar == '=' {
 			tok.Type = token.LEQT
