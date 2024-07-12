@@ -34,7 +34,7 @@ func EvaluateProgram(statements []ast.Statement, env *object.Environment) []obje
 			program = append(program, stmtVal)
 			return program
 		default:
-			program = append(program, Evaluate(stmt, env))
+			program = append(program, stmtVal)
 		}
 
 	}
