@@ -8,20 +8,27 @@ import (
 	"github.com/tysufa/qfa/parser"
 )
 
-// func TestLetStatements(t *testing.T) {
-// 	tests := []struct {
-// 		input    string
-// 		expected int
-// 	}{
-// 		{"let a = 5; a;", 5},
-// 		{"let a = 5 * 5; a;", 25},
-// 		{"let a = 5; let b = a; b;", 5},
-// 		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
-// 	}
-// 	for _, tt := range tests {
-// 		testIntegerObject(t, testEval(tt.input)[0], tt.expected)
-// 	}
-// }
+func TestLetStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int
+	}{
+		{"let a = 5; a;", 5},
+		{"let a = 5 * 5; a;", 25},
+		{"let a = 5; let b = a; b;", 5},
+		{"let a = 5; a = a+1; a;", 6},
+		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+	}
+	for _, tt := range tests {
+    // t.Fatalf("%v", testEval(tt.input)[1].Inspect())
+    evaluationRes := testEval(tt.input)
+    for _, res := range evaluationRes{
+      if res != nil{
+        testIntegerObject(t, res, tt.expected)
+      }
+    }
+	}
+}
 
 func TestErrors(t *testing.T) {
 	tests := []struct {

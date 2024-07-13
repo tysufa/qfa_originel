@@ -149,6 +149,13 @@ func (p *Parser) parseStatement() ast.Statement {
 		stmt = p.parseLet()
 	case token.RETURN:
 		stmt = p.parseReturn()
+  case token.IDENT:
+    if p.peekToken.Type == token.EQ{
+      stmt = p.parseAssignement()
+    } else{
+      stmt = p.parseExpressionStatement()
+    }
+    
 	default:
 		stmt = p.parseExpressionStatement()
 	}
@@ -168,6 +175,22 @@ func (p *Parser) GetStatements() ast.Program {
 		p.nextToken()
 	}
 	return res
+}
+
+func (p *Parser) parseAssignement() *ast.AssignementStatement{
+	ass := &ast.AssignementStatement{Token: p.curToken}
+
+	ass.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Value}
+	p.nextToken()
+	p.nextToken()
+
+	ass.Value = p.parseExpression(LOWEST)
+
+  if p.curToken.Type == token.SEMICOLON{
+    p.nextToken()
+  }
+
+	return ass
 }
 
 var precedences = map[token.TokenType]int{

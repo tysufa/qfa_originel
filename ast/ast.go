@@ -204,6 +204,22 @@ func (is *IfExpression) String() string {
 	return out.String()
 }
 
+type AssignementStatement struct{
+  Token token.Token
+  Name *Identifier
+  Value Expression
+}
+
+func (as *AssignementStatement) TokenLiteral() string { return as.Token.Value }
+func (as *AssignementStatement) StatementNode()       {}
+func (as *AssignementStatement) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("let " + as.Name.String() + " = " + as.Value.String() + ";")
+
+	return out.String()
+}
+
 type LetStatement struct {
 	Token token.Token
 	Name  *Identifier

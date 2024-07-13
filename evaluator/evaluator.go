@@ -78,6 +78,9 @@ func Evaluate(node ast.Node, env *object.Environment) object.Object {
 	case *ast.LetStatement:
 		val := Evaluate(node.Value, env)
 		env.Set(node.Name.Value, val)
+	case *ast.AssignementStatement:
+    val := Evaluate(node.Value, env)
+    env.Set(node.Name.Value, val)
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 	case *ast.ExpressionStatement:
