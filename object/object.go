@@ -55,7 +55,9 @@ func (bo *BlockObject) Type() ObjectType { return BLOCK_OBJ }
 func (bo *BlockObject) Inspect() string {
 	var res bytes.Buffer
 	for _, obj := range bo.Block {
-		res.WriteString(obj.Inspect())
+    if obj != nil{
+      res.WriteString(obj.Inspect())
+    }
 	}
 
 	return res.String()
