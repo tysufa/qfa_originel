@@ -149,6 +149,8 @@ func (p *Parser) parseStatement() ast.Statement {
 		stmt = p.parseLet()
 	case token.RETURN:
 		stmt = p.parseReturn()
+	case token.WHILE:
+    stmt = p.parseWhile()
   case token.IDENT:
     if p.peekToken.Type == token.EQ{
       stmt = p.parseAssignement()
@@ -177,6 +179,28 @@ func (p *Parser) GetStatements() ast.Program {
 	return res
 }
 
+func (p *Parser) parseWhile() *ast.WhileStatement{
+  ws := &ast.WhileStatement{Token: p.curToken}
+  if !p.expectPeek(token.LPAR){
+    return nil
+  }
+  p.nextToken()
+
+  ws.Condition = p.parseExpression(LOWEST)
+
+  if !p.expectPeek(token.RPAR){
+    return nil
+  }
+
+  if !p.expectPeek(token.LBR){
+    return nil
+  }
+
+  ws.Instructions = p.parseBlockStatement()
+
+  return ws
+}
+
 func (p *Parser) parseAssignement() *ast.AssignementStatement{
 	ass := &ast.AssignementStatement{Token: p.curToken}
 
@@ -186,7 +210,7 @@ func (p *Parser) parseAssignement() *ast.AssignementStatement{
 
 	ass.Value = p.parseExpression(LOWEST)
 
-  if p.curToken.Type == token.SEMICOLON{
+  if p.peekToken.Type == token.SEMICOLON{
     p.nextToken()
   }
 

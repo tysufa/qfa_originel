@@ -88,6 +88,16 @@ func (fl *FunctionLiteral) String() string {
 	return out.String()
 }
 
+type WhileStatement struct{
+  Token token.Token
+  Condition Expression
+  Instructions *BlockStatement
+}
+
+func (ws WhileStatement) TokenLiteral() string { return ws.Token.Value }
+func (ws WhileStatement) StatementNode()       {}
+func (ws WhileStatement) String() string       {return ""}
+
 type ReturnStatement struct {
 	Token token.Token
 	Value Expression

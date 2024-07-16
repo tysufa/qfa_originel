@@ -427,6 +427,37 @@ func TestIdentExpressions(t *testing.T) {
 
 }
 
+func TestWhileStatement(t *testing.T){
+  tests := []struct{
+    input string
+    expected interface{}
+  }{
+    {"while (x < y){true}",true},
+    {"while (x < y){x}", "x"},
+  }
+
+  for _, test := range tests{
+		l := lexer.New(test.input)
+		p := New(l)
+		stmts := p.GetStatements()
+
+		testParserErrors(t, p)
+		testStatementsNumber(t, 1, stmts.Statements)
+
+    whileStmt, ok := stmts.Statements[0].(*ast.WhileStatement)
+
+    if !ok{
+      t.Fatalf("stmts.Satements[0] is not ast.WhileStatement, got %T instead", stmts.Statements[0])
+    }
+
+    testInfixExpression(t, whileStmt.Condition, "x", "<", "y")
+
+
+    print(whileStmt)
+  }
+
+}
+
 func TestIfStatements(t *testing.T) {
 	tests := []struct {
 		input        string
