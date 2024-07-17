@@ -357,6 +357,7 @@ func (p *Parser) parseLet() *ast.LetStatement {
 	}
 	p.nextToken()
 
+  // TODO: take care of the case where it's an if expression with multiple outpus
 	let.Value = p.parseExpression(LOWEST)
 
 	if !p.expectPeek(token.SEMICOLON) {
@@ -408,10 +409,6 @@ func (p *Parser) parseIfExpression() ast.Expression {
 		is.ElseConsequences = p.parseBlockStatement()
 	} else {
 		is.ElseConsequences = &ast.BlockStatement{}
-	}
-
-	if p.peekToken.Type == token.SEMICOLON {
-		p.nextToken()
 	}
 
 	return is
