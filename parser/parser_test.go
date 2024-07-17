@@ -452,8 +452,14 @@ func TestWhileStatement(t *testing.T){
 
     testInfixExpression(t, whileStmt.Condition, "x", "<", "y")
 
+    for i, stmt  := range whileStmt.Instructions.Statements{
+      exprStmt, ok := stmt.(*ast.ExpressionStatement)
+      if !ok{
+        t.Fatalf("whileStmt.Instructions.Statements[%d] is not *ast.ExpressionStatement, got %T instead", i, stmt)
+      }
 
-    print(whileStmt)
+      testLiteralExpression(t, exprStmt.Expression, test.expected)
+    }
   }
 
 }
@@ -490,10 +496,10 @@ func TestIfStatements(t *testing.T) {
 
 		testInfixExpression(t, ifStmt.Condition, "x", "<", "y")
 
-		for _, consequence := range ifStmt.Consequences.Statements {
+		for i, consequence := range ifStmt.Consequences.Statements {
 			csq, ok := consequence.(*ast.ExpressionStatement)
 			if !ok {
-				t.Fatalf("nop")
+				t.Fatalf("whileStmt.Instructions.Statements[%d] is not *ast.ExpressionStatement, got %T instead", i, consequence)
 			}
 			testLiteralExpression(t, csq.Expression, test.expected)
 		}
